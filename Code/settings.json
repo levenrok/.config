@@ -18,10 +18,8 @@
 	"terminal.integrated.enableVisualBell": true,
   
 	"window.autoDetectColorScheme": true,
-	"window.customTitleBarVisibility": "auto",
   
 	"workbench.activityBar.location": "top",
-	"workbench.editor.empty.hint": "hidden",
 	"workbench.iconTheme": "material-icon-theme",
 	"workbench.preferredDarkColorTheme": "Tokyo Night",
 	"workbench.startupEditor": "welcomePageInEmptyWorkbench"
