@@ -30,6 +30,14 @@ check_installed() {
       fi
       ;;
 
+    2)
+      if which geany > /dev/null 2>&1; then
+        return $SUCCESS
+      else
+        return $ERR_NOINSTALL
+      fi
+      ;;
+
     *)
       return $ERR_UNEXPECTED
   esac
@@ -42,13 +50,21 @@ run_config() {
 
   readonly DIR_CONFIG=~/.config
   readonly DIR_CONFIG_CODE=$DIR_CONFIG/Code/User
+  readonly DIR_CONFIG_GEANY=$DIR_CONFIG/geany
   readonly DIR_TEMP=/tmp
 
   local editor
+  local editor_dir_config
 
   case $1 in
     1)
       editor=Code
+      editor_dir_config=$DIR_CONFIG_CODE
+      ;;
+
+    2)
+      editor=Geany
+      editor_dir_config=$DIR_CONFIG_GEANY
       ;;
 
     *)
@@ -67,8 +83,8 @@ run_config() {
 
   echo "${BLUE}[INFO]${NC} Configuring ${YELLOW}$editor${NC}..."
 
-  mv $DIR_TEMP/settings.json $DIR_CONFIG_CODE && \
-  mv $DIR_TEMP/keybindings.json $DIR_CONFIG_CODE
+  mv $DIR_TEMP/settings.json $editor_dir_config && \
+  mv $DIR_TEMP/keybindings.json $editor_dir_config
 
   if [ $? -ne 0 ]; then
     return $ERR_MOVE
@@ -96,6 +112,7 @@ main() {
 
   echo "Please select the code editor to configure:"
   echo "  [1] Code"
+  echo "  [2] Geany"
   echo "  [q] Quit"
   read -p "Enter your choice: " editor_choice
   echo ""
@@ -135,6 +152,44 @@ main() {
         exit $ERR_MOVE
       else
         echo "${RED}[ERROR]${NC} An unexpected error occurred while configuring Code!"
+        exit $ERR_UNEXPECTED
+      fi
+      ;;
+
+    2)
+      echo "Checking for ${BLUE}Geany${NC} installation..."
+
+      check_installed 2
+      status=$?
+
+      if [ $status -eq $SUCCESS ]; then
+        echo "Found ${GREEN}Geany${NC} installation..."
+      elif [ $status -eq $ERR_NOINSTALL ]; then
+        echo "${RED}[ERROR]${NC} Cannot find the Geany installation!"
+        exit $ERR_NOINSTALL
+      else
+        echo "${RED}[ERROR]${NC} An unexpected error occurred while checking for Geany installation!"
+        exit $ERR_UNEXPECTED
+      fi
+
+      run_config 2
+      status=$?
+
+      if [ $status -eq $SUCCESS ]; then
+        echo "Successfully configured ${GREEN}Geany${NC}."
+        echo ""
+        echo "-----------------------------------"
+        echo "Configuration process finished."
+
+        exit $SUCCESS
+      elif [ $status -eq $ERR_FETCH ]; then
+        echo "${RED}[ERROR]${NC} Failed to configure Geany. Please check your internet connection!"
+        exit $ERR_FETCH
+      elif [ $status -eq $ERR_MOVE ]; then
+        echo "${RED}[ERROR]${NC} Failed to configure Geany. Please check your file permissions!"
+        exit $ERR_MOVE
+      else
+        echo "${RED}[ERROR]${NC} An unexpected error occurred while configuring Geany!"
         exit $ERR_UNEXPECTED
       fi
       ;;
